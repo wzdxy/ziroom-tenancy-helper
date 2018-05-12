@@ -7,6 +7,34 @@
     <title>Document</title>
 </head>
 <body>
-    res
+    <div id="app">
+        <h2>{{title}}</h2>
+    </div>
+    <script src="https://cdn.bootcss.com/vue/2.5.17-beta.0/vue.js"></script>
+    <script src="https://cdn.bootcss.com/axios/0.18.0/axios.js"></script>
+    <script>
+        new Vue({
+            el: '#app',
+            data: {
+                title: '所有数据'
+            },
+            methods: {
+                getList (){
+                    axios.get('/api/list').then((res) => {
+                        console.log(res)
+                        setTimeout(() => {                    
+                            this.getList()
+                        },5000)
+                    },(err) => {
+                        console.log('error', err)
+                    })
+                }
+            },
+            created (){
+                console.log(this)
+                this.getList()
+            }
+        })
+    </script>
 </body>
 </html>

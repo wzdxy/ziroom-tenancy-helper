@@ -3,6 +3,9 @@ const fs = require('fs')
 const cheerio = require('cheerio')
 const Express = require('express')
 let app = new Express()
+app.use('/api/list', (req, res) => {
+  res.send('listlist')
+})
 app.use('/', (req, res) => {
   res.sendfile('index.html')
 })
@@ -10,12 +13,26 @@ app.listen(8000, (e) => {
   console.log(e)
 })
 let rooms = JSON.parse(fs.readFileSync('room.json', 'utf-8')).rooms
+let config = require('./config')
 const result = {
   code: 0
 }
 let i = 0
 console.log(rooms)
-spider(rooms)
+// spider(rooms)
+async function getPath () {
+  const map = require('./map')
+  let data = await map.getPath(config.originString, '31.22,121.50')
+  console.log(JSON.parse(data.text))
+}
+// getPath()
+
+async function getRooms () {
+  const search = require('./search')
+  let data = await search.loop()
+  console.log(data)
+}
+getRooms()
 
 /**
  * 读取配置信息, 修改 rooms
@@ -48,6 +65,7 @@ function getRoom (url) {
   // let a = url.search(/[0-9]+/)
   superAgent
     .get(url)
+    // .use(noCache)
     // .get('m.ziroom.com/BJ/room/60205027.html')
     .end((err, res) => {
       spider()
