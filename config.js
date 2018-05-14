@@ -9,16 +9,17 @@ module.exports = {
     // 北京
     city_code: 110000,
     // 房屋类型
-    type: 1
+    type: 1,
+    keywords: '望京'
   },
   storageFilter: {
     // 最小面积
     minArea: 10,
     // 最高价格
-    maxPrice: 3000
+    maxPrice: 3500
   },
   // 搜索的平均频率
-  avgDuration: 3000,
+  avgDuration: 2000,
   // 搜索的最大页数
-  maxPage: 5
+  maxPage: 1
 }

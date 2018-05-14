@@ -4,11 +4,13 @@
   "description": "",
   "main": "app.js",
   "dependencies": {
+    "body-parser": "^1.18.2",
     "cheerio": "^1.0.0-rc.2",
     "express": "^4.16.3",
     "nedb": "^1.8.0",
     "superagent": "^3.8.3",
-    "superagent-no-cache": "^0.1.1"
+    "superagent-no-cache": "^0.1.1",
+    "twig": "^1.11.0"
   },
   "devDependencies": {},
   "scripts": {

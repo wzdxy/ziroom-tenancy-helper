@@ -6,7 +6,7 @@ module.exports = {
         .query({
           origin: origin,
           destination: dest,
-          ak: 'HSxj9DGfWYlFQvHocqxOmwjIHqQi0aGu'
+          ak: 'HwAoQ1TvwIGh9Sxl9XxwGiThUWmktt2o'
         })
         .end((err, res) => {
           if (err) reject(err)

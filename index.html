@@ -4,35 +4,177 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta http-equiv="X-UA-Compatible" content="ie=edge">
-    <title>Document</title>
+    <title>ziroom 监控</title>
+    <link href="https://cdn.bootcss.com/element-ui/2.3.7/theme-chalk/index.css" rel="stylesheet">
+    <style>
+        .el-slider{
+            display: inline-block;
+            width: 200px;
+        }
+        .filter-item{
+            display: inline-flex;
+            color: #666;
+            border-left: 1px solid;
+            padding-left: 10px;
+        }
+        .filter-item:nth-child(1){
+            border-left: none;
+        }
+        .filter-item > div{
+            min-width: 50px;
+            line-height: 40px;
+            /* color: #666; */
+        }
+        .el-checkbox+.el-checkbox {
+            margin-left: 10px;
+        }
+    </style>
 </head>
 <body>
     <div id="app">
-        <h2>{{title}}</h2>
+        <!-- 筛选器 -->
+        <div>
+            <div class="filter-item">
+                <div>距离 : </div>
+                <div>{{filter.distance[0]}}</div><el-slider range v-model="filter.distance" :step="0.5" :max="10"></el-slider><div>{{filter.distance[1]}}</div>
+            </div>
+            <div class="filter-item">
+                <div>价格 : </div>
+                <div>{{filter.price[0]}}</div><el-slider range v-model="filter.price" :step="50" :max="4000"  :min="2000"></el-slider><div>{{filter.price[1]}}</div>
+            </div>
+            <div class="filter-item">
+                <div>状态 : </div>
+                <div>
+                    <el-checkbox-group v-model="filter.status">
+                        <el-checkbox label="dzz">待租</el-checkbox>
+                        <el-checkbox label="已出租"></el-checkbox>
+                        <el-checkbox label="已下定"></el-checkbox>
+                        <el-checkbox label="zxpzz">装修配置中</el-checkbox>
+                        <el-checkbox label="tzpzz">退租配置中</el-checkbox>
+                    </el-checkbox-group>
+                </div>
+            </div>
+        </div>
+        <!-- 列表 -->
+        <el-table :data="list" style="width: 100%" stripe>
+            <el-table-column label="#" width="80" type='index'></el-table-column>
+            <el-table-column prop="id" label="ID" width="120"></el-table-column>
+            <el-table-column prop="status" label="状态" width="90" sortable>
+                <template slot-scope="scope">
+                    <span v-if="scope.row.status==='dzz'" style="color: #0c0">待租</span>
+                    <span v-else-if="scope.row.status==='ycz'" style="color: #c00">已租</span>
+                    <span v-else>{{scope.row.status}}</span>
+                </template>
+            </el-table-column>
+            <el-table-column prop="name" label="名称" width="220"></el-table-column>
+            <el-table-column prop="turn" label="类型" width="80">
+                <template slot-scope="scope">
+                    {{scope.row.turn?'转租':''}}
+                </template>
+            </el-table-column>
+            <el-table-column prop="price" label="价格" width="90" sortable></el-table-column>
+            <el-table-column prop="area" label="面积" width="80" sortable></el-table-column>
+            <!-- area.replace(/[^0-9.]/ig,""); -->
+            <el-table-column label="骑行时长" width="120" sortable :sort-method="durationSort">
+                <template slot-scope="scope">
+                    <span v-if="scope.row.path.result">
+                        {{(scope.row.path.result.routes[0].duration/60).toFixed(2)}} 分
+                    </span>
+                </template>
+            </el-table-column>
+            <el-table-column label="骑行路线" width="120" sortable :sort-method="distanceSort">
+                <template slot-scope="scope">
+                    <span v-if="scope.row.path.result">
+                    {{(scope.row.path.result.routes[0].distance/1000).toFixed(2)}} km
+                    </span>
+                </template>
+            </el-table-column>
+            <el-table-column label="楼层" width="60">
+                <template slot-scope="scope">{{scope.row.floor}}/{{scope.row.floor_total}}</template>
+            </el-table-column>
+            <el-table-column label="首次发现时间" width="300" sortable :sort-method="firstUpdateTimeSort">
+                <template slot-scope="scope">
+                    {{new Date(scope.row.firstUpdateTime)}} , {{Math.floor((new Date().getTime() - scope.row.firstUpdateTime)/1000/60)}} 分前
+                </template>
+            </el-table-column>
+            <el-table-column label="上次刷新" sortable :sort-method="lastUpdateTimeSort">
+                <template slot-scope="scope">
+                    {{Math.floor((new Date().getTime() - scope.row.lastUpdateTime)/1000/60)}} 分前
+                </template>
+            </el-table-column>
+            <el-table-column lable="链接">
+                <template slot-scope="scope">
+                    <a :href="'http://www.ziroom.com/z/vr/'+scope.row.id+'.html'" target="_blank">点击</a>
+                </template>
+            </el-table-column>
+        </el-table>
     </div>
     <script src="https://cdn.bootcss.com/vue/2.5.17-beta.0/vue.js"></script>
+    <script src="https://cdn.bootcss.com/element-ui/2.3.7/index.js"></script>
     <script src="https://cdn.bootcss.com/axios/0.18.0/axios.js"></script>
     <script>
         new Vue({
             el: '#app',
             data: {
-                title: '所有数据'
+                title: '所有数据',
+                filter: {
+                    distance: [0,5],
+                    price: [2000,3200],
+                    status: ['dzz','ycz','zxpzz']        
+                },
+                list: [],
+                isBusy: false,
+                locker: null
+            },
+            watch: {
+                filter: {
+                    deep: true,
+                    handler: function (val) {
+                        clearTimeout(this.locker)
+                        this.locker = setTimeout(() => {
+                            this.getList()
+                        }, 1000)
+                        this.getList()
+                    }
+                }
             },
             methods: {
                 getList (){
-                    axios.get('/api/list').then((res) => {
-                        console.log(res)
-                        setTimeout(() => {                    
-                            this.getList()
-                        },5000)
+                    if(this.isBusy)return
+                    this.isBusy=true
+                    axios.get('api/list',{
+                        params: this.filter
+                    }).then((res) => {
+                        this.isBusy = false
+                        this.list = res.data                    
                     },(err) => {
+                        this.isBusy = false
                         console.log('error', err)
                     })
+                },
+                durationSort (a, b){
+                    if(!a.path.result)return -1
+                    if(!b.path.result)return 1
+                    return a.path.result.routes[0].duration - b.path.result.routes[0].duration
+                },
+                distanceSort (a, b){
+                    if(!a.path.result)return -1
+                    if(!b.path.result)return 1
+                    return a.path.result.routes[0].distance - b.path.result.routes[0].distance
+                },
+                lastUpdateTimeSort (a, b){
+                    return a.lastUpdateTime - b.lastUpdateTime
+                },
+                firstUpdateTimeSort (a, b){
+                    return a.firstUpdateTime - b.firstUpdateTime
                 }
             },
             created (){
                 console.log(this)
                 this.getList()
+                setInterval(function () {
+                    this.getList()
+                }.bind(this),10000)
             }
         })
     </script>
