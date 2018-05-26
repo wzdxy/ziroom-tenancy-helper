@@ -70,8 +70,10 @@ module.exports = {
             } else {
               // 如果是新数据 , 存入数据库
               res.data.rooms[idx].firstUpdateTime = res.data.rooms[idx].lastUpdateTime = new Date().getTime()
-              const path = await map.getPath(`${item.lat},${item.lng}`, config.originString)
-              res.data.rooms[idx].path = JSON.parse(path.text)
+              if (config.ak) {
+                const path = await map.getPath(`${item.lat},${item.lng}`, config.originString)
+                res.data.rooms[idx].path = JSON.parse(path.text)
+              }
               db.save(res.data.rooms[idx])
             }
           })
