@@ -2,6 +2,7 @@ const superAgent = require('superagent')
 const config = require('./config')
 const db = require('./db')
 const map = require('./map')
+let keywordIndex = 0
 module.exports = {
   /**
    * 爬取一页
@@ -24,18 +25,30 @@ module.exports = {
   /**
    * 搜索搜多个页
    */
-  loop (cycle) {
+  loop (cycle, keyword) {
     return new Promise(async (resolve, reject) => {
       let result = []
+      // 关键词
+      config.searchFilter.keywords = config.keywordsArray[keywordIndex]
+      console.log('开始', config.searchFilter.keywords)
       // 从第一页开始遍历
       let page = 1
       while (page <= config.maxPage) {
         let res = await this.getList(config.searchFilter, page)
         console.log(new Date(), page, res.data)
         if (res.error_code === 0) {
-          if (res.data.rooms.length === 0) {
-            console.log(new Date(), '爬取完成')
-            resolve(result)
+          if (!res.data.rooms || res.data.rooms.length === 0) {
+            console.log(new Date(), config.searchFilter.keywords + ' 爬取完成')
+            if (keywordIndex < config.keywordsArray.length - 1) {
+              await this.loop(cycle, config.keywordsArray[++keywordIndex])
+            } else if (cycle) {
+              await this.sleep(1000 * 5)
+              keywordIndex = 0
+              await this.loop(cycle, config.keywordsArray[0])
+              break
+            } else {
+              resolve(result)
+            }
           } else {
             page++
           }
@@ -67,9 +80,11 @@ module.exports = {
           console.log('get list error', res.error_message)
         }
       }
-      if (cycle) {
-        await this.sleep(1000 * 60)
-        await this.loop()
+      if (keywordIndex < config.keywordsArray.length - 1) {
+        await this.loop(cycle, config.keywordsArray[++keywordIndex])
+      } else {
+        keywordIndex = 0
+        await this.loop(cycle, config.keywordsArray[0])
       }
     })
   },

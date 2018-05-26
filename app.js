@@ -18,12 +18,15 @@ app.use('/', (req, res) => {
   res.sendfile('index.html')
 })
 app.listen(8000, (e) => {
-  console.log(e)
+  if (e) {
+    console.log(e)
+  }
 })
 
 async function getRooms () {
   const search = require('./search')
-  let data = await search.loop(false)
+  const config = require('./config')
+  let data = await search.loop(true, config.keywordsArray[0])
   console.log(data)
 }
 getRooms()
