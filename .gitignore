@@ -1,2 +1,4 @@
 node_modules
-rooms.db
+*.db
+assets/price-img/*
+eng.traineddata*

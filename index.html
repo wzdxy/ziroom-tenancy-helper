@@ -72,7 +72,7 @@
                     {{scope.row.turn?'转租':''}}
                 </template>
             </el-table-column>
-            <el-table-column prop="price" label="价格" width="90" sortable></el-table-column>
+            <el-table-column prop="price.price" label="价格" width="90" sortable></el-table-column>
             <el-table-column prop="area" label="面积" width="80" sortable></el-table-column>
             <!-- area.replace(/[^0-9.]/ig,""); -->
             <el-table-column label="骑行时长" width="120" sortable :sort-method="durationSort">

@@ -7,8 +7,8 @@ module.exports = {
    */
   save (data) {
     roomStorage.insert(data, (err, ret) => {
-      if (!err) {
-        console.log(ret)
+      if (err) {
+        console.log('insert error', err)
       }
     })
   },

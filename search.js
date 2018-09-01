@@ -2,6 +2,7 @@ const superAgent = require('superagent')
 const config = require('./config')
 const db = require('./db')
 const map = require('./map')
+const price = require('./price')
 let keywordIndex = 0
 module.exports = {
   /**
@@ -35,7 +36,7 @@ module.exports = {
       let page = 1
       while (page <= config.maxPage) {
         let res = await this.getList(config.searchFilter, page)
-        console.log(new Date(), page, res.data)
+        console.log(new Date(), keyword, `第${page}页`, res.data.rooms.length + '个房源')
         if (res.error_code === 0) {
           if (!res.data.rooms || res.data.rooms.length === 0) {
             console.log(new Date(), config.searchFilter.keywords + ' 爬取完成')
@@ -70,10 +71,13 @@ module.exports = {
             } else {
               // 如果是新数据 , 存入数据库
               res.data.rooms[idx].firstUpdateTime = res.data.rooms[idx].lastUpdateTime = new Date().getTime()
+              // 百度地图获取通勤路线
               if (config.ak) {
                 const path = await map.getPath(`${item.lat},${item.lng}`, config.originString)
                 res.data.rooms[idx].path = JSON.parse(path.text)
               }
+              // 图片识别
+              res.data.rooms[idx].price = await price.parsePrice(res.data.rooms[idx].price[0], res.data.rooms[idx].price[1])
               db.save(res.data.rooms[idx])
             }
           })
