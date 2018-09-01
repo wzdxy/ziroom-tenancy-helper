@@ -40,7 +40,7 @@
             </div>
             <div class="filter-item">
                 <div>价格 : </div>
-                <div>{{filter.price[0]}}</div><el-slider range v-model="filter.price" :step="50" :max="4000"  :min="2000"></el-slider><div>{{filter.price[1]}}</div>
+                <div>{{filter.price[0]}}</div><el-slider range v-model="filter.price" :step="50" :max="5000"  :min="2000"></el-slider><div>{{filter.price[1]}}</div>
             </div>
             <div class="filter-item">
                 <div>状态 : </div>
@@ -66,13 +66,13 @@
                     <span v-else>{{scope.row.status}}</span>
                 </template>
             </el-table-column>
-            <el-table-column prop="name" label="名称" width="220"></el-table-column>
+            <el-table-column prop="name" label="名称" width="260"></el-table-column>
             <el-table-column prop="turn" label="类型" width="80">
                 <template slot-scope="scope">
                     {{scope.row.turn?'转租':''}}
                 </template>
             </el-table-column>
-            <el-table-column prop="price.price" label="价格" width="90" sortable></el-table-column>
+            <el-table-column prop="priceParsed.price" label="价格" width="90" sortable></el-table-column>
             <el-table-column prop="area" label="面积" width="80" sortable></el-table-column>
             <!-- area.replace(/[^0-9.]/ig,""); -->
             <el-table-column label="骑行时长" width="120" sortable :sort-method="durationSort">
@@ -89,12 +89,12 @@
                     </span>
                 </template>
             </el-table-column>
-            <el-table-column label="楼层" width="60">
+            <el-table-column label="楼层" width="80">
                 <template slot-scope="scope">{{scope.row.floor}}/{{scope.row.floor_total}}</template>
             </el-table-column>
             <el-table-column label="首次发现时间" width="300" sortable :sort-method="firstUpdateTimeSort">
                 <template slot-scope="scope">
-                    {{new Date(scope.row.firstUpdateTime)}} , {{Math.floor((new Date().getTime() - scope.row.firstUpdateTime)/1000/60)}} 分前
+                    {{new Date(scope.row.firstUpdateTime).toLocaleDateString()}} , {{Math.floor((new Date().getTime() - scope.row.firstUpdateTime)/1000/60)}} 分前
                 </template>
             </el-table-column>
             <el-table-column label="上次刷新" sortable :sort-method="lastUpdateTimeSort">
@@ -104,7 +104,7 @@
             </el-table-column>
             <el-table-column lable="链接">
                 <template slot-scope="scope">
-                    <a :href="'http://www.ziroom.com/z/vr/'+scope.row.id+'.html'" target="_blank">点击</a>
+                    <a :href="'http://www.ziroom.com/z/vr/'+scope.row.id+'.html'" target="_blank">查看</a>
                 </template>
             </el-table-column>
         </el-table>

@@ -21,7 +21,7 @@ async function parsePrice (imgUrl, positionArray) {
     const cache = await getCachePrice(imgId)
     if (cache && cache.length > 0) {
       // 如果命中缓存直接计算价格并返回
-      console.log('命中 OCR 缓存', imgId)
+      // console.log('命中 OCR 缓存', imgId)
       cache[0].price = pic2price(cache[0].numbers, positionArray)
       resolve(cache[0])
     } else {
@@ -36,7 +36,8 @@ async function parsePrice (imgUrl, positionArray) {
           id: imgId,
           numbers: numbers, // 10个数字序列
           localPath: filePath,
-          imgUrl: imgUrl
+          imgUrl: imgUrl,
+          raw: [imgUrl, positionArray]
         }
         // 识别结果, 图片路径等都保存到数据库作为缓存
         await createCachePrice(result)
@@ -64,7 +65,8 @@ async function parsePrice (imgUrl, positionArray) {
               id: imgId,
               numbers: numbers, // 10个数字序列
               localPath: filePath,
-              imgUrl: imgUrl
+              imgUrl: imgUrl,
+              raw: [imgUrl, positionArray]
             }
             // 识别结果, 图片路径等都保存到数据库作为缓存
             await createCachePrice(result)
@@ -82,7 +84,7 @@ async function parsePrice (imgUrl, positionArray) {
 
 async function parseNumber (imagePath) {
   return new Promise((resolve, reject) => {
-    console.log('开始识别', imagePath)
+    console.log('启动 OCR', imagePath)
     try {
       Tesseract.create({ langPath: 'eng.traineddata' }).recognize(imagePath, 'eng').then(function (result) {
         if (result && result.text) {

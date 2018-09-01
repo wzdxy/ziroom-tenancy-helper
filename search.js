@@ -32,17 +32,20 @@ module.exports = {
       // 关键词
       config.searchFilter.keywords = config.keywordsArray[keywordIndex]
       console.log('开始', config.searchFilter.keywords)
-      // 从第一页开始遍历
+      // 从第一页开始遍历, 终止条件是配置文件的最大页码
       let page = 1
       while (page <= config.maxPage) {
         let res = await this.getList(config.searchFilter, page)
         console.log(new Date(), keyword, `第${page}页`, res.data.rooms.length + '个房源')
         if (res.error_code === 0) {
           if (!res.data.rooms || res.data.rooms.length === 0) {
+            // 如果本页没有房源了, 本个关键词爬取完成
             console.log(new Date(), config.searchFilter.keywords + ' 爬取完成')
             if (keywordIndex < config.keywordsArray.length - 1) {
+              // 如果还有其他关键词, 就开始下一个关键词的爬取
               await this.loop(cycle, config.keywordsArray[++keywordIndex])
             } else if (cycle) {
+              // 从第一个关键词开始爬
               await this.sleep(1000 * 5)
               keywordIndex = 0
               await this.loop(cycle, config.keywordsArray[0])
@@ -51,9 +54,16 @@ module.exports = {
               resolve(result)
             }
           } else {
+            // 如果本关键词还没结束, 先页码++ , 然后开始处理本页数据
             page++
           }
-          res.data.rooms.forEach(async (item, idx) => {
+          // 循环每个房源
+          let countNew = 0
+          let countUpdate = 0
+          let countOld = 0
+          let isPicUpdate = false
+          for (let idx in res.data.rooms) {
+            const item = res.data.rooms[idx]
             const exist = await db.findOne({ id: item.id })
             // 如果已经存在, 更新数据
             if (exist) {
@@ -61,12 +71,20 @@ module.exports = {
               delete exist.lastUpdateTime
               delete exist.path
               delete exist._id
-              // 如果有更新才存入
+              delete exist.priceParsed
+              if (exist.price[0] !== item.price[0]) {
+                isPicUpdate = true
+              }              
+              // 如果有更新才更新数据库字段
               if (!this.match(exist, item)) {
-                item.lastUpdateTime = new Date().getTime()
+                item.lastUpdateTime = new Date().getTime() // TODO 因为图片经常更新, 会导致总为最新
+                item.priceParsed = await price.parsePrice(item.price[0], item.price[1]) // 价格图片很可能更新, 需重新解析
                 await db.update({
                   id: item.id
                 }, item)
+                countUpdate++
+              } else {
+                countOld++
               }
             } else {
               // 如果是新数据 , 存入数据库
@@ -77,10 +95,12 @@ module.exports = {
                 res.data.rooms[idx].path = JSON.parse(path.text)
               }
               // 图片识别
-              res.data.rooms[idx].price = await price.parsePrice(res.data.rooms[idx].price[0], res.data.rooms[idx].price[1])
+              res.data.rooms[idx].priceParsed = await price.parsePrice(res.data.rooms[idx].price[0], res.data.rooms[idx].price[1])
               db.save(res.data.rooms[idx])
+              countNew++
             }
-          })
+          }
+          console.log(`          ${keyword}, 新增 ${countNew}, 更新${countUpdate}, 未变化${countOld}, 价格数字图片${isPicUpdate ? '有变化' : '无变化'}`)
           await this.sleep(this.getDurationRandom(config.avgDuration)) // 控制爬取频率
         } else {
           console.log('get list error', res.error_message)
@@ -95,8 +115,8 @@ module.exports = {
     })
   },
   /**
-   * 生成一个时间段
-   * @param {Number} avg
+   * 随机生成一个时间段
+   * @param {Number} avg 平均值
    */
   getDurationRandom (avg) {
     let random = Math.random()
@@ -106,11 +126,16 @@ module.exports = {
       return avg * 2 * random
     }
   },
+
+  /**
+   * 等待一段时间, 用于 async 方法
+   * @param {Number} ms 时长
+   */
   sleep (ms) {
     return new Promise(resolve => setTimeout(resolve, ms))
   },
   /**
-   * 比较两个对象是不是相同
+   * 比较两个对象是否相同
    * @param {*} a
    * @param {*} b
    */

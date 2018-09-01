@@ -12,7 +12,7 @@ app.use('/api/list', async (req, res) => {
   let result = list.filter(function (item) {
     if (!item.path.result) return true
     let distance = item.path.result.routes[0].distance / 1000
-    return item.price.price > filter.price[0] && item.price.price < filter.price[1] && distance > filter.distance[0] && distance < filter.distance[1]
+    return item.priceParsed.price > filter.price[0] && item.priceParsed.price < filter.price[1] && distance > filter.distance[0] && distance < filter.distance[1]
   })
   res.send(result)
 })
@@ -43,4 +43,4 @@ async function startSpider () {
   const config = require('./config')
   await search.loop(true, config.keywordsArray[0])
 }
-startSpider()
+startSpider() // 开始爬取, 注释此行则启动服务, 不爬数据
