@@ -92,7 +92,7 @@
             <el-table-column label="楼层" width="80">
                 <template slot-scope="scope">{{scope.row.floor}}/{{scope.row.floor_total}}</template>
             </el-table-column>
-            <el-table-column label="首次发现时间" width="300" sortable :sort-method="firstUpdateTimeSort">
+            <el-table-column label="首次发现时间" width="200" sortable :sort-method="firstUpdateTimeSort">
                 <template slot-scope="scope">
                     {{new Date(scope.row.firstUpdateTime).toLocaleDateString()}} , {{Math.floor((new Date().getTime() - scope.row.firstUpdateTime)/1000/60)}} 分前
                 </template>
@@ -118,8 +118,8 @@
             data: {
                 title: '所有数据',
                 filter: {
-                    distance: [0,5],
-                    price: [2000,3200],
+                    distance: [0,6],
+                    price: [2000,4000],
                     status: ['dzz','ycz','zxpzz']        
                 },
                 list: [],

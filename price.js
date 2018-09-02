@@ -88,7 +88,7 @@ async function parseNumber (imagePath) {
     try {
       Tesseract.create({ langPath: 'eng.traineddata' }).recognize(imagePath, 'eng').then(function (result) {
         if (result && result.text) {
-          resolve(result.text.replace('\n', ''))
+          resolve(result.text.replace(/\n/g, ''))
         } else {
           reject(new Error('Tesseract run failed'))
         }

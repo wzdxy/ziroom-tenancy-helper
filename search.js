@@ -1,4 +1,5 @@
 const superAgent = require('superagent')
+require('colors')
 const config = require('./config')
 const db = require('./db')
 const map = require('./map')
@@ -31,12 +32,12 @@ module.exports = {
       let result = []
       // 关键词
       config.searchFilter.keywords = config.keywordsArray[keywordIndex]
-      console.log('开始', config.searchFilter.keywords)
+      console.log('开始搜索关键词'.green, config.searchFilter.keywords.yellow)
       // 从第一页开始遍历, 终止条件是配置文件的最大页码
       let page = 1
       while (page <= config.maxPage) {
         let res = await this.getList(config.searchFilter, page)
-        console.log(new Date(), keyword, `第${page}页`, res.data.rooms.length + '个房源')
+        console.log(`${new Date().toLocaleTimeString()} ${keyword.yellow} 第 ${page} 页 返回房源数量 ${res.data.rooms.length}`)
         if (res.error_code === 0) {
           if (!res.data.rooms || res.data.rooms.length === 0) {
             // 如果本页没有房源了, 本个关键词爬取完成
@@ -71,18 +72,35 @@ module.exports = {
               delete exist.lastUpdateTime
               delete exist.path
               delete exist._id
+              // 暂时去掉价格相关的数据, 比较其他数据
+              const existPriceArray = exist.price
+              const existPriceParsed = exist.priceParsed
+              const newPriceArray = item.price
+              delete item.price
+              delete exist.price
               delete exist.priceParsed
-              if (exist.price[0] !== item.price[0]) {
-                isPicUpdate = true
-              }              
               // 如果有更新才更新数据库字段
               if (!this.match(exist, item)) {
-                item.lastUpdateTime = new Date().getTime() // TODO 因为图片经常更新, 会导致总为最新
-                item.priceParsed = await price.parsePrice(item.price[0], item.price[1]) // 价格图片很可能更新, 需重新解析
+                item.lastUpdateTime = new Date().getTime()
                 await db.update({
                   id: item.id
                 }, item)
                 countUpdate++
+              } else if (!this.match(existPriceArray, newPriceArray)) {
+                // 价格数据(图片或图片定位的数组)发生变化
+                if (existPriceArray[0] !== newPriceArray[0]) {
+                  isPicUpdate = true // 图片 URL 更新
+                }
+                item.price = newPriceArray
+                item.priceParsed = await price.parsePrice(item.price[0], item.price[1]) // 重新解析价格
+                if (item.priceParsed.price !== existPriceParsed.price) {
+                  item.lastUpdateTime = new Date().getTime() // 如果实际价格也变化, 标记为数据更新
+                } else {
+                  countOld++
+                }
+                await db.update({
+                  id: item.id
+                }, item)
               } else {
                 countOld++
               }
@@ -100,7 +118,7 @@ module.exports = {
               countNew++
             }
           }
-          console.log(`          ${keyword}, 新增 ${countNew}, 更新${countUpdate}, 未变化${countOld}, 价格数字图片${isPicUpdate ? '有变化' : '无变化'}`)
+          console.log(`         ${keyword.yellow} 第 ${page - 1} 页 新增 ${String(countNew).green}  更新 ${String(countUpdate).cyan}  未变化 ${String(countOld).gray}, 价格数字图片${isPicUpdate ? '有'.green : '无'.gray}变化`)
           await this.sleep(this.getDurationRandom(config.avgDuration)) // 控制爬取频率
         } else {
           console.log('get list error', res.error_message)

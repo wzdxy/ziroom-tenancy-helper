@@ -3,6 +3,7 @@ const bodyParser = require('body-parser')
 const db = require('./db')
 const open = require('open')
 const fs = require('fs')
+const path = require('path')
 let app = new Express()
 app.use(bodyParser.json())
 // 数据展示接口
@@ -18,7 +19,7 @@ app.use('/api/list', async (req, res) => {
 })
 // 数据展示首页
 app.use('/', (req, res) => {
-  res.sendfile('index.html')
+  res.sendFile(path.join(__dirname, 'index.html'))
 })
 
 // 判断 traineddata 训练数据, 用于 tesseract.js 识别
