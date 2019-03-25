@@ -40,7 +40,7 @@
             </div>
             <div class="filter-item">
                 <div>价格 : </div>
-                <div>{{filter.price[0]}}</div><el-slider range v-model="filter.price" :step="50" :max="5000"  :min="2000"></el-slider><div>{{filter.price[1]}}</div>
+                <div>{{filter.price[0]}}</div><el-slider range v-model="filter.price" :step="50" :max="12000"  :min="2000"></el-slider><div>{{filter.price[1]}}</div>
             </div>
             <div class="filter-item">
                 <div>状态 : </div>
@@ -97,6 +97,15 @@
                     {{new Date(scope.row.firstUpdateTime).toLocaleDateString()}} , {{Math.floor((new Date().getTime() - scope.row.firstUpdateTime)/1000/60)}} 分前
                 </template>
             </el-table-column>
+            <el-table-column width="150px" label="图片">
+                <template slot-scope="scope">
+                    <el-popover placement="right" title="" trigger="hover">
+                        <img :src="scope.row.hx_photos_big"/>
+                        <img slot="reference" :src="scope.row.hx_photos_min" :alt="scope.row.hx_photos_min"
+                            style="max-height: 20px">
+                    </el-popover>
+                </template>
+            </el-table-column>
             <el-table-column label="上次刷新" sortable :sort-method="lastUpdateTimeSort">
                 <template slot-scope="scope">
                     {{Math.floor((new Date().getTime() - scope.row.lastUpdateTime)/1000/60)}} 分前
@@ -119,7 +128,7 @@
                 title: '所有数据',
                 filter: {
                     distance: [0,6],
-                    price: [2000,4000],
+                    price: [5000,9000],
                     status: ['dzz','ycz','zxpzz']        
                 },
                 list: [],

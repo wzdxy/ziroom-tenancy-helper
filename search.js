@@ -12,12 +12,30 @@ module.exports = {
    * @param {*} page
    */
   async getList (options, page) {
+    const params = Object.assign({
+      page: page,
+      city_code: 110000
+    }, options)
+    console.log(params)
     return new Promise((resolve, reject) => {
       superAgent.get('http://m.ziroom.com/v7/room/list.json')
-        .query(Object.assign({
-          page: page,
-          city_code: 110000
-        }, options))
+        .set('Accept', 'application/json;version=6')
+        .query(params)
+        .end((err, res) => {
+          if (err) reject(err)
+          resolve(JSON.parse(res.text))
+        })
+    })
+  },
+  async getRoomDetail (id) {
+    const params = Object.assign({
+      city_code: 110000,
+      id: id
+    })
+    return new Promise((resolve, reject) => {
+      superAgent.get('http://m.ziroom.com/wap/detail/room.json')
+        .set('Accept', 'application/json;version=6')
+        .query(params)
         .end((err, res) => {
           if (err) reject(err)
           resolve(JSON.parse(res.text))
@@ -114,6 +132,12 @@ module.exports = {
               }
               // 图片识别
               res.data.rooms[idx].priceParsed = await price.parsePrice(res.data.rooms[idx].price[0], res.data.rooms[idx].price[1])
+              // 获取户型图
+              const roomDetail = await this.getRoomDetail(item.id)
+              // console.log(roomDetail.data.hx_photos_big)
+              // console.log(roomDetail.data.hx_photos_min)
+              res.data.rooms[idx].hx_photos_big = roomDetail.data.hx_photos_big
+              res.data.rooms[idx].hx_photos_min = roomDetail.data.hx_photos_min
               db.save(res.data.rooms[idx])
               countNew++
             }

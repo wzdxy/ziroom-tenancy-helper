@@ -34,7 +34,7 @@ app.listen(8000, (e) => {
   if (e) {
     console.log(e)
   } else {
-    open('http://localhost:8000')
+    // open('http://localhost:8000')
   }
 })
 
