@@ -27,6 +27,10 @@ module.exports = {
         })
     })
   },
+  /**
+   * 请求详情页接口
+   * @param {string} id
+   */
   async getRoomDetail (id) {
     const params = Object.assign({
       city_code: 110000,
@@ -97,6 +101,8 @@ module.exports = {
               delete item.price
               delete exist.price
               delete exist.priceParsed
+              delete exist.hx_photos_big
+              delete exist.hx_photos_min
               // 如果有更新才更新数据库字段
               if (!this.match(exist, item)) {
                 item.lastUpdateTime = new Date().getTime()
@@ -128,14 +134,13 @@ module.exports = {
               // 百度地图获取通勤路线
               if (config.ak) {
                 const path = await map.getPath(`${item.lat},${item.lng}`, config.originString)
-                res.data.rooms[idx].path = JSON.parse(path.text)
+                res.data.rooms[idx].path = { result: { routes: [JSON.parse(path.text).result.routes[0]] } }
+                // res.data.rooms[idx].path = JSON.parse(path.text)
               }
               // 图片识别
               res.data.rooms[idx].priceParsed = await price.parsePrice(res.data.rooms[idx].price[0], res.data.rooms[idx].price[1])
               // 获取户型图
               const roomDetail = await this.getRoomDetail(item.id)
-              // console.log(roomDetail.data.hx_photos_big)
-              // console.log(roomDetail.data.hx_photos_min)
               res.data.rooms[idx].hx_photos_big = roomDetail.data.hx_photos_big
               res.data.rooms[idx].hx_photos_min = roomDetail.data.hx_photos_min
               db.save(res.data.rooms[idx])

@@ -1,5 +1,6 @@
 const Nedb = require('nedb')
 const roomStorage = new Nedb({ filename: './rooms.db', autoload: true })
+roomStorage.persistence.setAutocompactionInterval(300 * 1000) // 每隔5分钟压缩一次数据库 防止文件过大 (https://github.com/louischatriot/nedb/issues/530)
 module.exports = {
   /**
    * 保存数据库
