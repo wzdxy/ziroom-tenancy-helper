@@ -141,6 +141,7 @@ module.exports = {
               res.data.rooms[idx].priceParsed = await price.parsePrice(res.data.rooms[idx].price[0], res.data.rooms[idx].price[1])
               // 获取户型图
               const roomDetail = await this.getRoomDetail(item.id)
+              await this.sleep(500)
               res.data.rooms[idx].hx_photos_big = roomDetail.data.hx_photos_big
               res.data.rooms[idx].hx_photos_min = roomDetail.data.hx_photos_min
               db.save(res.data.rooms[idx])

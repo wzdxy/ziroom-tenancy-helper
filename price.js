@@ -50,6 +50,10 @@ async function parsePrice (imgUrl, positionArray) {
             reject(err)
           }
           // 保存图片到本地
+          if (!fs.existsSync('assets/price-img')) {
+            fs.mkdirSync('assets/price-img')
+            console.log('创建图片文件夹')
+          }
           if (!fs.existsSync(filePath)) {
             error = fs.writeFileSync(filePath, res.body)
             console.log('下载图片', imgId)

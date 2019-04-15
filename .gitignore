@@ -1,4 +1,4 @@
 node_modules
-*.db
+rooms.db
 # assets/price-img/*
 eng.traineddata*
