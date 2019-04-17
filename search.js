@@ -133,9 +133,11 @@ module.exports = {
               res.data.rooms[idx].firstUpdateTime = res.data.rooms[idx].lastUpdateTime = new Date().getTime()
               // 百度地图获取通勤路线
               if (config.ak) {
-                const path = await map.getPath(`${item.lat},${item.lng}`, config.originString)
-                // res.data.rooms[idx].path = { result: { routes: [JSON.parse(path.text).result.routes[0]] } }
+                const path = await map.getPath(`${item.lat},${item.lng}`, config.originString, 'riding')
                 res.data.rooms[idx].path = JSON.parse(path.text)
+                const pathTransit = await map.getPath(`${item.lat},${item.lng}`, config.originString, 'transit')
+                res.data.rooms[idx].pathTransit = JSON.parse(pathTransit.text)
+
               }
               // 图片识别
               res.data.rooms[idx].priceParsed = await price.parsePrice(res.data.rooms[idx].price[0], res.data.rooms[idx].price[1])

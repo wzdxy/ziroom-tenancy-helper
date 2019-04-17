@@ -6,7 +6,7 @@ module.exports = {
    * @param {*} origin
    * @param {*} dest
    */
-  async getPath (origin, dest) {
+  async getPath (origin, dest, type) {
     return new Promise((resolve, reject) => {
       if (!config.ak) {
         reject(Error({
@@ -14,7 +14,7 @@ module.exports = {
           message: '请求未发出 , 因为未配置 config.ak'
         }))
       }
-      superAgent.get('http://api.map.baidu.com/direction/v2/riding')
+      superAgent.get('http://api.map.baidu.com/direction/v2/' + type)
         .query({
           origin: origin,
           destination: dest,
