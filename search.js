@@ -132,19 +132,14 @@ module.exports = {
               res.data.rooms[idx].firstUpdateTime = res.data.rooms[idx].lastUpdateTime = new Date().getTime()
               // 百度地图获取通勤路线
               if (config.ak) {
-                const pathRide = await map.getPath(`${item.lat},${item.lng}`, config.originString, 'riding')
-                res.data.rooms[idx].pathRide = JSON.parse(pathRide.text)
-                const pathTransit = await map.getPath(`${item.lat},${item.lng}`, config.originString, 'transit', {
-                  tactics_incity: 5
-                })
-                res.data.rooms[idx].pathTransit = JSON.parse(pathTransit.text)
-
+                res.data.rooms[idx].pathRide = await map.getRidingPath(`${item.lat},${item.lng}`, config.originString)
+                res.data.rooms[idx].pathTransitGroup = await map.getTransitPathGroup(`${item.lat},${item.lng}`, config.originString)
               }
               // 图片识别
               res.data.rooms[idx].priceParsed = await price.parsePrice(res.data.rooms[idx].price[0], res.data.rooms[idx].price[1])
               // 获取户型图
               const roomDetail = await this.getRoomDetail(item.id)
-              await this.sleep(500)
+              await this.sleep(200)
               res.data.rooms[idx].hx_photos_big = roomDetail.data.hx_photos_big
               res.data.rooms[idx].hx_photos_min = roomDetail.data.hx_photos_min
               db.save(res.data.rooms[idx])

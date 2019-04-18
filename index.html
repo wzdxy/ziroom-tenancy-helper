@@ -43,8 +43,8 @@
             height: 20px;
             display: inline-block;
         }
-        /* 公交车 */
-        .line-3-0 {
+        /* 公交车 夜班车 */
+        .line-3-0, .line-3-2, .line-3-4 ,.line-3-6 {
             background: #d66;
         }
         /* 地铁 */
@@ -112,14 +112,15 @@
             </el-table-column>
             <el-table-column label="公交路线" width="200">
                 <template slot-scope="scope">
-                    <span v-if="scope.row.pathTransit">
-                        <span class="step-line-group" :style="{paddingRight: `${(90-scope.row.pathTransit.duration/60)/90*100}%`}">
-                            <span v-for="step in scope.row.pathTransit.steps"
+                    <span v-if="scope.row.pathTransitGroup">
+                        <span v-for='path in scope.row.pathTransitGroup' class="step-line-group" :style="{paddingRight: `${(90-path.duration/60)/90*100}%`}">
+                            <span v-for="step in path.steps"
                                 class='step-line'
                                 :class='`line-${step.type}-${step.detailType||0}`'
-                                :style="{width: step.duration/scope.row.pathTransit.calcDuration*100 + '%'}"></span>
-                            <span class="duration-label">{{(scope.row.pathTransit.duration/60).toFixed(1)}} 分</span>
+                                :style="{width: step.duration/path.calcDuration*100 + '%'}"></span>
+                            <span class="duration-label">{{(path.duration/60).toFixed(1)}} 分</span>
                         </span>
+                        aaa
                     </span>
                 </template>
             </el-table-column>

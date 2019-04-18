@@ -16,28 +16,25 @@ app.use('/api/list', async (req, res) => {
   })
   result.forEach((item, idx, arr) => {
     // 骑行的时长和距离
-    if (item.pathRide && item.pathRide.result) {
+    if (item.pathRide) {
       item.pathRide = {
-        distance: item.pathRide.result.routes[0].distance,
-        duration: item.pathRide.result.routes[0].duration
+        distance: item.pathRide.distance,
+        duration: item.pathRide.duration
       }
     }
     // 公交时长和基本路线
-    if (item.pathTransit && item.pathTransit.result) {
-      item.pathTransit = {
-        distance: item.pathTransit.result.routes[0].distance,
-        duration: item.pathTransit.result.routes[0].duration,
-        steps: item.pathTransit.result.routes[0].steps.map(i => i.map(ii => {
+    if (item.pathTransitGroup) {
+      item.pathTransitGroup = item.pathTransitGroup.map((path) => {
+        path.calcDuration = 0 // 多步的总和实际相加(一般会小于百度地图给出的总时长)
+        path.steps = path.steps.map(ii => ii.map(iii => {
+          path.calcDuration += iii.duration
           return {
-            type: ii.vehicle_info.type, // 大类
-            detailType: ii.vehicle_info.detail && ii.vehicle_info.detail.type, // 详细类型
-            duration: ii.duration, // 本步用时
+            type: iii.vehicle_info.type, // 大类
+            detailType: iii.vehicle_info.detail && iii.vehicle_info.detail.type, // 详细类型
+            duration: iii.duration, // 本步用时
           }
-        })[0]),
-      }
-      item.pathTransit.calcDuration = 0 // 多步的总和实际相加(一般会小于百度地图给出的总时长)
-      item.pathTransit.steps.forEach((step) => {
-        item.pathTransit.calcDuration += step.duration
+        })[0]);
+        return path
       })
     }
   })
