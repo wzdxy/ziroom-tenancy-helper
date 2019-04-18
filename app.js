@@ -10,10 +10,36 @@ app.use(bodyParser.json())
 app.use('/api/list', async (req, res) => {
   let list = await db.find({})
   let filter = req.query
+  // 过滤
   let result = list.filter(function (item) {
-    if (!item.path.result) return true
-    let distance = item.path.result.routes[0].distance / 1000
-    return item.priceParsed.price > filter.price[0] && item.priceParsed.price < filter.price[1] && distance > filter.distance[0] && distance < filter.distance[1]
+    return Number(item.priceParsed.price) > Number(filter.price[0]) && Number(item.priceParsed.price) < Number(filter.price[1]);
+  })
+  result.forEach((item, idx, arr) => {
+    // 骑行的时长和距离
+    if (item.pathRide && item.pathRide.result) {
+      item.pathRide = {
+        distance: item.pathRide.result.routes[0].distance,
+        duration: item.pathRide.result.routes[0].duration
+      }
+    }
+    // 公交时长和基本路线
+    if (item.pathTransit && item.pathTransit.result) {
+      item.pathTransit = {
+        distance: item.pathTransit.result.routes[0].distance,
+        duration: item.pathTransit.result.routes[0].duration,
+        steps: item.pathTransit.result.routes[0].steps.map(i => i.map(ii => {
+          return {
+            type: ii.vehicle_info.type, // 大类
+            detailType: ii.vehicle_info.detail && ii.vehicle_info.detail.type, // 详细类型
+            duration: ii.duration, // 本步用时
+          }
+        })[0]),
+      }
+      item.pathTransit.calcDuration = 0 // 多步的总和实际相加(一般会小于百度地图给出的总时长)
+      item.pathTransit.steps.forEach((step) => {
+        item.pathTransit.calcDuration += step.duration
+      })
+    }
   })
   res.send(result)
 })

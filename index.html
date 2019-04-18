@@ -1,11 +1,12 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="zh-CN">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta http-equiv="X-UA-Compatible" content="ie=edge">
     <title>ziroom 监控</title>
     <link href="https://cdn.bootcss.com/element-ui/2.3.7/theme-chalk/index.css" rel="stylesheet">
+    <link rel="stylesheet" href="//at.alicdn.com/t/font_1148396_8xlck65ivge.css">
     <style>
         .el-slider{
             display: inline-block;
@@ -23,10 +24,36 @@
         .filter-item > div{
             min-width: 50px;
             line-height: 40px;
-            /* color: #666; */
         }
         .el-checkbox+.el-checkbox {
             margin-left: 10px;
+        }
+        .step-line-group {
+            display: inline-flex;
+            box-sizing: border-box;
+            width: 180px;
+            background: #eee;
+            position: relative;
+        }
+        .duration-label {
+            position: absolute;
+            right: 0;
+        }
+        .step-line {
+            height: 20px;
+            display: inline-block;
+        }
+        /* 公交车 */
+        .line-3-0 {
+            background: #d66;
+        }
+        /* 地铁 */
+        .line-3-1 {
+            background: #58c;
+        }
+        /* 步行 */
+        .line-5-0 {
+            background: #8d8;
         }
     </style>
 </head>
@@ -34,10 +61,10 @@
     <div id="app">
         <!-- 筛选器 -->
         <div>
-            <div class="filter-item">
+            <!-- <div class="filter-item">
                 <div>距离 : </div>
                 <div>{{filter.distance[0]}}</div><el-slider range v-model="filter.distance" :step="0.5" :max="10"></el-slider><div>{{filter.distance[1]}}</div>
-            </div>
+            </div> -->
             <div class="filter-item">
                 <div>价格 : </div>
                 <div>{{filter.price[0]}}</div><el-slider range v-model="filter.price" :step="50" :max="12000"  :min="2000"></el-slider><div>{{filter.price[1]}}</div>
@@ -75,17 +102,24 @@
             <el-table-column prop="priceParsed.price" label="价格" width="90" sortable></el-table-column>
             <el-table-column prop="area" label="面积" width="80" sortable></el-table-column>
             <!-- area.replace(/[^0-9.]/ig,""); -->
-            <el-table-column label="骑行时长" width="120" sortable :sort-method="durationSort">
+            <el-table-column label="骑行时长" width="160" sortable :sort-method="durationSort">
                 <template slot-scope="scope">
-                    <span v-if="scope.row.path.result">
-                        {{(scope.row.path.result.routes[0].duration/60).toFixed(2)}} 分
+                    <span v-if="scope.row.pathRide">
+                        {{(scope.row.pathRide.duration/60).toFixed(1)}}分 /
+                        {{(scope.row.pathRide.distance/1000).toFixed(1)}}km
                     </span>
                 </template>
             </el-table-column>
-            <el-table-column label="骑行路线" width="120" sortable :sort-method="distanceSort">
+            <el-table-column label="公交路线" width="200">
                 <template slot-scope="scope">
-                    <span v-if="scope.row.path.result">
-                    {{(scope.row.path.result.routes[0].distance/1000).toFixed(2)}} km
+                    <span v-if="scope.row.pathTransit">
+                        <span class="step-line-group" :style="{paddingRight: `${(90-scope.row.pathTransit.duration/60)/90*100}%`}">
+                            <span v-for="step in scope.row.pathTransit.steps"
+                                class='step-line'
+                                :class='`line-${step.type}-${step.detailType||0}`'
+                                :style="{width: step.duration/scope.row.pathTransit.calcDuration*100 + '%'}"></span>
+                            <span class="duration-label">{{(scope.row.pathTransit.duration/60).toFixed(1)}} 分</span>
+                        </span>
                     </span>
                 </template>
             </el-table-column>
@@ -127,9 +161,9 @@
             data: {
                 title: '所有数据',
                 filter: {
-                    distance: [0,6],
+                    distance: [0,9],
                     price: [5000,9000],
-                    status: ['dzz','ycz','zxpzz']        
+                    status: ['dzz','ycz','zxpzz']
                 },
                 list: [],
                 isBusy: false,
@@ -155,7 +189,7 @@
                         params: this.filter
                     }).then((res) => {
                         this.isBusy = false
-                        this.list = res.data                    
+                        this.list = res.data
                     },(err) => {
                         this.isBusy = false
                         console.log('error', err)

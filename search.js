@@ -16,7 +16,6 @@ module.exports = {
       page: page,
       city_code: 110000
     }, options)
-    console.log(params)
     return new Promise((resolve, reject) => {
       superAgent.get('http://m.ziroom.com/v7/room/list.json')
         .set('Accept', 'application/json;version=6')
@@ -133,9 +132,11 @@ module.exports = {
               res.data.rooms[idx].firstUpdateTime = res.data.rooms[idx].lastUpdateTime = new Date().getTime()
               // 百度地图获取通勤路线
               if (config.ak) {
-                const path = await map.getPath(`${item.lat},${item.lng}`, config.originString, 'riding')
-                res.data.rooms[idx].path = JSON.parse(path.text)
-                const pathTransit = await map.getPath(`${item.lat},${item.lng}`, config.originString, 'transit')
+                const pathRide = await map.getPath(`${item.lat},${item.lng}`, config.originString, 'riding')
+                res.data.rooms[idx].pathRide = JSON.parse(pathRide.text)
+                const pathTransit = await map.getPath(`${item.lat},${item.lng}`, config.originString, 'transit', {
+                  tactics_incity: 5
+                })
                 res.data.rooms[idx].pathTransit = JSON.parse(pathTransit.text)
 
               }

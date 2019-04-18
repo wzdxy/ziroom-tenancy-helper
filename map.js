@@ -6,7 +6,10 @@ module.exports = {
    * @param {*} origin
    * @param {*} dest
    */
-  async getPath (origin, dest, type) {
+  async getPath (origin, dest, type, option) {
+    if (!option) {
+      option = {}
+    }
     return new Promise((resolve, reject) => {
       if (!config.ak) {
         reject(Error({
@@ -15,11 +18,11 @@ module.exports = {
         }))
       }
       superAgent.get('http://api.map.baidu.com/direction/v2/' + type)
-        .query({
+        .query(Object.assign({
           origin: origin,
           destination: dest,
           ak: config.ak
-        })
+        }, option))
         .end((err, res) => {
           if (err) reject(err)
           resolve(res)
