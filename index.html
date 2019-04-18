@@ -28,20 +28,29 @@
         .el-checkbox+.el-checkbox {
             margin-left: 10px;
         }
+        .path-group {
+            display: inline-flex;
+            flex-direction: column;
+        }
         .step-line-group {
             display: inline-flex;
             box-sizing: border-box;
             width: 180px;
             background: #eee;
             position: relative;
+            margin-bottom: 4px;
         }
         .duration-label {
             position: absolute;
             right: 0;
+            font-size: 13px;
+            line-height: 13px;
+            height: 13px;
         }
         .step-line {
-            height: 20px;
+            height: 14px;
             display: inline-block;
+            border-right: 1px solid #ddd;
         }
         /* 公交车 夜班车 */
         .line-3-0, .line-3-2, .line-3-4 ,.line-3-6 {
@@ -112,7 +121,7 @@
             </el-table-column>
             <el-table-column label="公交路线" width="200">
                 <template slot-scope="scope">
-                    <span v-if="scope.row.pathTransitGroup">
+                    <span v-if="scope.row.pathTransitGroup" class="path-group">
                         <span v-for='path in scope.row.pathTransitGroup' class="step-line-group" :style="{paddingRight: `${(90-path.duration/60)/90*100}%`}">
                             <span v-for="step in path.steps"
                                 class='step-line'
@@ -120,7 +129,6 @@
                                 :style="{width: step.duration/path.calcDuration*100 + '%'}"></span>
                             <span class="duration-label">{{(path.duration/60).toFixed(1)}} 分</span>
                         </span>
-                        aaa
                     </span>
                 </template>
             </el-table-column>
