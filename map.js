@@ -34,7 +34,7 @@ module.exports = {
         })
     })
   },
-  // 获取多组公交换乘路线
+  // 根据偏好获取多组公交换乘路线
   async getTransitPathGroup (origin, dest) {
     let group = [0, 1, 4, 5]  // 路线偏好 0 推荐 1 少换乘 2 少步行 3 不坐地铁 4 时间短 5 地铁优先
     let result = []
@@ -53,6 +53,24 @@ module.exports = {
         }
       }
       resolve(_.uniqWith(result, (a, b) => a.duration === b.duration && a.distence === b.distence)) // 不同偏好可能返回相同路线,需去重
+    })
+  },
+
+  // 获取推荐的公交换乘路线
+  async getRecommendTransitPathGroup (origin, dest) {
+    let group = [0, 1, 4, 5]  // 路线偏好 0 推荐 1 少换乘 2 少步行 3 不坐地铁 4 时间短 5 地铁优先
+    let result = []
+    return new Promise(async (resolve, reject) => {
+      try {
+        let path = await this.getPath(origin, dest, 'transit')
+        if (path.status === 0 && path.result.routes.length > 0) { // 如果有路线 , 取第一个
+          resolve(path.result.routes)
+        } else {
+          resolve(false)
+        }
+      } catch(error) {
+        console.error('获取公交路线错误', error)
+      }
     })
   },
 

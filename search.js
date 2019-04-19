@@ -58,7 +58,7 @@ module.exports = {
       let page = 1
       while (page <= config.maxPage) {
         let res = await this.getList(config.searchFilter, page)
-        console.log(`${new Date().toLocaleTimeString()} ${keyword.yellow} 第 ${page} 页 返回房源数量 ${res.data.rooms.length}`)
+        console.log(`${new Date().toLocaleTimeString()} ${keyword.yellow} 第 ${page} 页 返回房源数量 ${res.data.rooms.length} ; 开始处理数据和路线规划..`)
         if (res.error_code === 0) {
           if (!res.data.rooms || res.data.rooms.length === 0) {
             // 如果本页没有房源了, 本个关键词爬取完成
@@ -132,8 +132,8 @@ module.exports = {
               res.data.rooms[idx].firstUpdateTime = res.data.rooms[idx].lastUpdateTime = new Date().getTime()
               // 百度地图获取通勤路线
               if (config.ak) {
-                res.data.rooms[idx].pathRide = await map.getRidingPath(`${item.lat},${item.lng}`, config.originString)
-                res.data.rooms[idx].pathTransitGroup = await map.getTransitPathGroup(`${item.lat},${item.lng}`, config.originString)
+                res.data.rooms[idx].pathRide = await map.getRidingPath(`${item.lat},${item.lng}`, config.destinationString)
+                res.data.rooms[idx].pathTransitGroup = await map.getRecommendTransitPathGroup(`${item.lat},${item.lng}`, config.destinationString)
               }
               // 图片识别
               res.data.rooms[idx].priceParsed = await price.parsePrice(res.data.rooms[idx].price[0], res.data.rooms[idx].price[1])

@@ -3,8 +3,11 @@ const bodyParser = require('body-parser')
 const db = require('./db')
 const open = require('open')
 const fs = require('fs')
+const compression = require('compression')
 const path = require('path')
+const config = require('./config')
 let app = new Express()
+app.use(compression())
 app.use(bodyParser.json())
 // 数据展示接口
 app.use('/api/list', async (req, res) => {
@@ -38,7 +41,10 @@ app.use('/api/list', async (req, res) => {
       })
     }
   })
-  res.send(result)
+  res.send({
+    list: result,
+    destinationString: config.destinationString
+  })
 })
 // 数据展示首页
 app.use('/', (req, res) => {
@@ -64,7 +70,6 @@ app.listen(8000, (e) => {
 // 爬取
 async function startSpider () {
   const search = require('./search')
-  const config = require('./config')
   await search.loop(true, config.keywordsArray[0])
 }
 startSpider() // 开始爬取, 注释此行则启动服务, 不爬数据

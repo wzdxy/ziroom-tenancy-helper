@@ -28,9 +28,16 @@
         .el-checkbox+.el-checkbox {
             margin-left: 10px;
         }
+        .el-table--striped .el-table__body tr.el-table__row--striped td {
+            background: transparent;
+        }
+        .el-table--enable-row-hover .el-table__body tr:hover>td {
+            background: transparent;
+        }
         .path-group {
             display: inline-flex;
             flex-direction: column;
+            cursor: pointer;
         }
         .step-line-group {
             display: inline-flex;
@@ -64,6 +71,45 @@
         .line-5-0 {
             background: #8d8;
         }
+        #map-modal {
+            background: #fff;
+            height: 100%;
+            width: 25%;
+            position: fixed;
+            top: 0;
+            right: 0;
+            z-index: 1001;
+            box-shadow: -5px 0px 20px 0px #bcbcbc;
+        }
+        #l-map{
+            height:40%;
+            width:100%;
+        }
+        #r-result {
+            height: 60%;
+            overflow-y: scroll;
+        }
+		#r-result, #r-result table{
+            width:100%;
+            font-size:12px;
+        }
+        .close-map-modal {
+            position: absolute;
+            left: 0;
+            top: 0;
+            width: 100px;
+            height: 50px;
+            background: rgba(0,0,0,0.3);
+            border-radius: 10px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            color: #fff;
+            cursor: pointer;
+        }
+        .close-map-modal:hover {
+            background: rgba(0,0,0,0.4);
+        }
     </style>
 </head>
 <body>
@@ -92,7 +138,7 @@
             </div>
         </div>
         <!-- 列表 -->
-        <el-table :data="list" style="width: 100%" stripe>
+        <el-table :data="list" :style="{width: routeMapShow ? '75%' : '100%'}" :row-style=rowStyle>
             <el-table-column label="#" width="80" type='index'></el-table-column>
             <el-table-column prop="id" label="ID" width="120"></el-table-column>
             <el-table-column prop="status" label="状态" width="90" sortable>
@@ -121,8 +167,8 @@
             </el-table-column>
             <el-table-column label="公交路线" width="200">
                 <template slot-scope="scope">
-                    <span v-if="scope.row.pathTransitGroup" class="path-group">
-                        <span v-for='path in scope.row.pathTransitGroup' class="step-line-group" :style="{paddingRight: `${(90-path.duration/60)/90*100}%`}">
+                    <span v-if="scope.row.pathTransitGroup" class="path-group" @click='showMapRoute(scope.row.lng, scope.row.lat, scope)'>
+                        <span v-for='path in scope.row.pathTransitGroup' class="step-line-group" :style="{paddingRight: `${(100-path.duration/60)}%`}">
                             <span v-for="step in path.steps"
                                 class='step-line'
                                 :class='`line-${step.type}-${step.detailType||0}`'
@@ -160,10 +206,18 @@
                 </template>
             </el-table-column>
         </el-table>
+        <div id="map-modal" v-show="routeMapShow">
+            <div id="l-map"></div>
+            <div id="r-result"></div>
+            <div class="close-map-modal" @click='routeMapShow=false'>
+                关闭
+            </div>
+        </div>
     </div>
     <script src="https://cdn.bootcss.com/vue/2.5.17-beta.0/vue.js"></script>
     <script src="https://cdn.bootcss.com/element-ui/2.3.7/index.js"></script>
     <script src="https://cdn.bootcss.com/axios/0.18.0/axios.js"></script>
+    <script src="https://api.map.baidu.com/api?v=2.0&ak=9VkvffekmCYZn5zEuOmcscqmKyiZ565q"></script>
     <script>
         new Vue({
             el: '#app',
@@ -175,8 +229,12 @@
                     status: ['dzz','ycz','zxpzz']
                 },
                 list: [],
+                activeIndex: -1,
                 isBusy: false,
-                locker: null
+                locker: null,
+                destinationString: '',
+                routeMap: null,
+                routeMapShow: false
             },
             watch: {
                 filter: {
@@ -186,7 +244,6 @@
                         this.locker = setTimeout(() => {
                             this.getList()
                         }, 1000)
-                        this.getList()
                     }
                 }
             },
@@ -198,7 +255,8 @@
                         params: this.filter
                     }).then((res) => {
                         this.isBusy = false
-                        this.list = res.data
+                        this.list = res.data.list
+                        this.destinationString = res.data.destinationString
                     },(err) => {
                         this.isBusy = false
                         console.log('error', err)
@@ -219,14 +277,40 @@
                 },
                 firstUpdateTimeSort (a, b){
                     return a.firstUpdateTime - b.firstUpdateTime
+                },
+                showMapRoute(lng, lat, scope) {
+                    this.activeIndex = scope.$index
+                    this.routeMapShow = true
+                    this.$nextTick(() => {
+                        const destinationArray = this.destinationString.split(',')
+                        const destinationLng = destinationArray[1] // 经度
+                        const destinationLat = destinationArray[0] // 纬度
+                        // 百度地图路线规划
+                        this.routeMap.centerAndZoom(new BMap.Point((destinationLng + lng) / 2, (destinationLat + lat) / 2), 12);
+                        this.routeMap.clearOverlays()
+                        var p1 = new BMap.Point(lng, lat);
+                        var p2 = new BMap.Point(destinationLng,destinationLat);
+                        var transit = new BMap.TransitRoute(this.routeMap, {
+                            renderOptions: {map: this.routeMap, panel: "r-result"}
+                        });
+                        transit.search(p1, p2);
+                        console.log(`origin=${lat},${lng}&destination=${this.destinationString}`)
+                    })
+                },
+                rowStyle(item) {
+                    if (item.rowIndex === this.activeIndex) {
+                        return {
+                            backgroundColor: 'rgb(221, 235, 255)'
+                        }
+                    }
                 }
             },
             created (){
-                console.log(this)
                 this.getList()
-                setInterval(function () {
-                    this.getList()
-                }.bind(this),10000)
+            },
+            mounted () {
+                this.routeMap = new BMap.Map("l-map");
+                this.routeMap.enableScrollWheelZoom(true);
             }
         })
     </script>
