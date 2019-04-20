@@ -29,14 +29,15 @@ app.use('/api/list', async (req, res) => {
     if (item.pathTransitGroup) {
       item.pathTransitGroup = item.pathTransitGroup.map((path) => {
         path.calcDuration = 0 // 多步的总和实际相加(一般会小于百度地图给出的总时长)
-        path.steps = path.steps.map(ii => ii.map(iii => {
-          path.calcDuration += iii.duration
+        path.steps = path.steps.map(step => {
+          const stepItem = step[0]  // 一个步骤多个方案 取第一个
+          path.calcDuration += stepItem.duration
           return {
-            type: iii.vehicle_info.type, // 大类
-            detailType: iii.vehicle_info.detail && iii.vehicle_info.detail.type, // 详细类型
-            duration: iii.duration, // 本步用时
+            type: stepItem.vehicle_info.type, // 大类
+            detailType: stepItem.vehicle_info.detail && stepItem.vehicle_info.detail.type, // 详细类型
+            duration: stepItem.duration, // 本步用时
           }
-        })[0]);
+        })
         return path
       })
     }
@@ -72,4 +73,4 @@ async function startSpider () {
   const search = require('./search')
   await search.loop(true, config.keywordsArray[0])
 }
-startSpider() // 开始爬取, 注释此行则启动服务, 不爬数据
+// startSpider() // 开始爬取, 注释此行则启动服务, 不爬数据

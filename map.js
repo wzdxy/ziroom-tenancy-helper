@@ -70,6 +70,7 @@ module.exports = {
         }
       } catch(error) {
         console.error('获取公交路线错误', error)
+        reject(error)
       }
     })
   },
@@ -86,6 +87,7 @@ module.exports = {
         }
       } catch (error) {
         console.error('获取骑行路线错误', error)
+        reject(error)
       }
     })
   }
