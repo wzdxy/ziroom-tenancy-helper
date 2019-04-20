@@ -125,6 +125,9 @@
                 <div>{{filter.price[0]}}</div><el-slider range v-model="filter.price" :step="50" :max="12000"  :min="2000"></el-slider><div>{{filter.price[1]}}</div>
             </div>
             <div class="filter-item">
+                <div>红色公交 蓝色地铁 绿色步行, 点击可查看详细通勤路线</div>
+            </div>
+            <!-- <div class="filter-item">
                 <div>状态 : </div>
                 <div>
                     <el-checkbox-group v-model="filter.status">
@@ -134,8 +137,8 @@
                         <el-checkbox label="zxpzz">装修配置中</el-checkbox>
                         <el-checkbox label="tzpzz">退租配置中</el-checkbox>
                     </el-checkbox-group>
-                </div>
-            </div>
+                </div> -->
+            <!-- </div> -->
         </div>
         <!-- 列表 -->
         <el-table :data="list" :style="{width: routeMapShow ? '75%' : '100%'}" :row-style=rowStyle>
@@ -268,9 +271,9 @@
                     return a.pathRide.duration - b.pathRide.duration
                 },
                 transitDurationSort (a, b){
-                    if(!a.pathTransit)return -1
-                    if(!b.pathTransit)return 1
-                    return a.pathTransit.duration - b.pathTransit.duration
+                    if(!a.pathTransitGroup)return -1
+                    if(!b.pathTransitGroup)return 1
+                    return a.pathTransitGroup[0].duration - b.pathTransitGroup[0].duration
                 },
                 lastUpdateTimeSort (a, b){
                     return a.lastUpdateTime - b.lastUpdateTime
