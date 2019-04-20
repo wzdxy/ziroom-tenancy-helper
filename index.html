@@ -157,7 +157,7 @@
             <el-table-column prop="priceParsed.price" label="价格" width="90" sortable></el-table-column>
             <el-table-column prop="area" label="面积" width="80" sortable></el-table-column>
             <!-- area.replace(/[^0-9.]/ig,""); -->
-            <el-table-column label="骑行时长" width="160" sortable :sort-method="durationSort">
+            <el-table-column label="骑行时长" width="160" sortable :sort-method="rideDurationSort">
                 <template slot-scope="scope">
                     <span v-if="scope.row.pathRide">
                         {{(scope.row.pathRide.duration/60).toFixed(1)}}分 /
@@ -165,7 +165,7 @@
                     </span>
                 </template>
             </el-table-column>
-            <el-table-column label="公交路线" width="200">
+            <el-table-column label="公交路线" width="200" sortable :sort-method="transitDurationSort">
                 <template slot-scope="scope">
                     <span v-if="scope.row.pathTransitGroup" class="path-group" @click='showMapRoute(scope.row.lng, scope.row.lat, scope)'>
                         <span v-for='path in scope.row.pathTransitGroup' class="step-line-group" :style="{paddingRight: `${(100-path.duration/60)}%`}">
@@ -262,15 +262,15 @@
                         console.log('error', err)
                     })
                 },
-                durationSort (a, b){
-                    if(!a.path.result)return -1
-                    if(!b.path.result)return 1
-                    return a.path.result.routes[0].duration - b.path.result.routes[0].duration
+                rideDurationSort (a, b){
+                    if(!a.pathRide)return -1
+                    if(!b.pathRide)return 1
+                    return a.pathRide.duration - b.pathRide.duration
                 },
-                distanceSort (a, b){
-                    if(!a.path.result)return -1
-                    if(!b.path.result)return 1
-                    return a.path.result.routes[0].distance - b.path.result.routes[0].distance
+                transitDurationSort (a, b){
+                    if(!a.pathTransit)return -1
+                    if(!b.pathTransit)return 1
+                    return a.pathTransit.duration - b.pathTransit.duration
                 },
                 lastUpdateTimeSort (a, b){
                     return a.lastUpdateTime - b.lastUpdateTime
