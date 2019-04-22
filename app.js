@@ -44,6 +44,8 @@ app.use('/api/list', async (req, res) => {
   })
   res.send({
     list: result,
+    countAll: list.length,
+    countFilter: result.length,
     destinationString: config.destinationString
   })
 })
@@ -73,4 +75,4 @@ async function startSpider () {
   const search = require('./search')
   await search.loop(true, config.keywordsArray[0])
 }
-// startSpider() // 开始爬取, 注释此行则启动服务, 不爬数据
+startSpider() // 开始爬取, 注释此行则启动服务, 不爬数据

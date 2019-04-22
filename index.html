@@ -127,6 +127,9 @@
             <div class="filter-item">
                 <div>红色公交 蓝色地铁 绿色步行, 点击可查看详细通勤路线</div>
             </div>
+            <div class="filter-item">
+                <div>当前筛选:{{countFilter}}  爬取总数:{{countAll}}</div>
+            </div>
             <!-- <div class="filter-item">
                 <div>状态 : </div>
                 <div>
@@ -237,7 +240,9 @@
                 locker: null,
                 destinationString: '',
                 routeMap: null,
-                routeMapShow: false
+                routeMapShow: false,
+                countAll: 0,
+                countFilter: 0,
             },
             watch: {
                 filter: {
@@ -247,6 +252,7 @@
                         this.locker = setTimeout(() => {
                             this.getList()
                         }, 1000)
+                        window.localStorage.setItem('ziroom-local-filter', JSON.stringify(this.filter))
                     }
                 }
             },
@@ -260,6 +266,8 @@
                         this.isBusy = false
                         this.list = res.data.list
                         this.destinationString = res.data.destinationString
+                        this.countAll = res.data.countAll
+                        this.countFilter = res.data.countFilter
                     },(err) => {
                         this.isBusy = false
                         console.log('error', err)
@@ -309,6 +317,10 @@
                 }
             },
             created (){
+                const localFilter = window.localStorage.getItem('ziroom-local-filter')
+                if (localFilter) {
+                    this.filter = JSON.parse(localFilter)
+                }
                 this.getList()
             },
             mounted () {
