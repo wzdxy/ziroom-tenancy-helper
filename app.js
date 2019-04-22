@@ -2,6 +2,7 @@ const Express = require('express')
 const bodyParser = require('body-parser')
 const db = require('./db')
 const open = require('open')
+const _ = require('lodash')
 const fs = require('fs')
 const compression = require('compression')
 const path = require('path')
@@ -15,7 +16,15 @@ app.use('/api/list', async (req, res) => {
   let filter = req.query
   // 过滤
   let result = list.filter(function (item) {
-    return Number(item.priceParsed.price) > Number(filter.price[0]) && Number(item.priceParsed.price) < Number(filter.price[1]);
+    const price = item.priceParsed.price
+    let duration = item.pathRide.duration
+    if (filter.pathType === '1') {
+      duration = _.minBy(item.pathTransitGroup, 'duration').duration
+    }
+    return Number(price) > Number(filter.price[0])
+        && Number(price) < Number(filter.price[1])
+        && Number(duration) > Number(filter.duration[0]*60)
+        && Number(duration) < Number(filter.duration[1]*60)
   })
   result.forEach((item, idx, arr) => {
     // 骑行的时长和距离

@@ -8,14 +8,26 @@
     <link href="https://cdn.bootcss.com/element-ui/2.3.7/theme-chalk/index.css" rel="stylesheet">
     <link rel="stylesheet" href="//at.alicdn.com/t/font_1148396_8xlck65ivge.css">
     <style>
+        body {
+            padding: 0;
+            margin: 0;
+        }
+        body.dark {
+            opacity: .6;
+            background: #000;
+        }
         .el-slider{
             display: inline-block;
             width: 200px;
         }
+        .filter-box {
+            background: #fff;
+            border: 1px solid #eee;
+        }
         .filter-item{
             display: inline-flex;
             color: #666;
-            border-left: 1px solid;
+            border-left: 1px solid #eee;
             padding-left: 10px;
         }
         .filter-item:nth-child(1){
@@ -25,8 +37,14 @@
             min-width: 50px;
             line-height: 40px;
         }
+        .filter-item > .el-switch {
+            height: 40px;
+        }
         .el-checkbox+.el-checkbox {
             margin-left: 10px;
+        }
+        .el-table {
+            min-height: calc(100vh - 50px);
         }
         .el-table--striped .el-table__body tr.el-table__row--striped td {
             background: transparent;
@@ -115,7 +133,7 @@
 <body>
     <div id="app">
         <!-- 筛选器 -->
-        <div>
+        <div class="filter-box">
             <!-- <div class="filter-item">
                 <div>距离 : </div>
                 <div>{{filter.distance[0]}}</div><el-slider range v-model="filter.distance" :step="0.5" :max="10"></el-slider><div>{{filter.distance[1]}}</div>
@@ -125,10 +143,20 @@
                 <div>{{filter.price[0]}}</div><el-slider range v-model="filter.price" :step="50" :max="12000"  :min="2000"></el-slider><div>{{filter.price[1]}}</div>
             </div>
             <div class="filter-item">
+                <div>通勤时长 : </div>
+                <div>{{filter.duration[0]}}</div><el-slider range v-model="filter.duration" :step="5" :max="120"  :min="0"></el-slider><div>{{filter.duration[1]}}</div>
+                <el-switch v-model="filter.pathType" active-color="#ffde00" inactive-color="#dd6666" active-value="0" inactive-value="1"></el-switch>
+                <div>{{['骑行','公交'][filter.pathType]}}</div>
+            </div>
+            <div class="filter-item">
+                <div>当前筛选: <b>{{countFilter}}</b>  爬取总数: <b>{{countAll}}</b></div>
+            </div>
+            <div class="filter-item">
                 <div>红色公交 蓝色地铁 绿色步行, 点击可查看详细通勤路线</div>
             </div>
             <div class="filter-item">
-                <div>当前筛选:{{countFilter}}  爬取总数:{{countAll}}</div>
+                <div>夜间</div>
+                <el-switch v-model="darkMode" active-value=1 inactive-value=0></el-switch>
             </div>
             <!-- <div class="filter-item">
                 <div>状态 : </div>
@@ -162,7 +190,6 @@
             </el-table-column>
             <el-table-column prop="priceParsed.price" label="价格" width="90" sortable></el-table-column>
             <el-table-column prop="area" label="面积" width="80" sortable></el-table-column>
-            <!-- area.replace(/[^0-9.]/ig,""); -->
             <el-table-column label="骑行时长" width="160" sortable :sort-method="rideDurationSort">
                 <template slot-scope="scope">
                     <span v-if="scope.row.pathRide">
@@ -232,8 +259,11 @@
                 filter: {
                     distance: [0,9],
                     price: [5000,9000],
-                    status: ['dzz','ycz','zxpzz']
+                    duration: [0, 45],
+                    pathType: 1,    // 筛选类型, 0 自行车 1 公交
+                    status: ['dzz','ycz','zxpzz'],
                 },
+                darkMode: 0,
                 list: [],
                 activeIndex: -1,
                 isBusy: false,
@@ -254,6 +284,11 @@
                         }, 1000)
                         window.localStorage.setItem('ziroom-local-filter', JSON.stringify(this.filter))
                     }
+                },
+                darkMode () {
+                    if(Number(this.darkMode))document.body.classList.add('dark')
+                    else document.body.classList.remove('dark')
+                    window.localStorage.setItem('ziroom-local-dark-mode', this.darkMode)
                 }
             },
             methods: {
@@ -324,6 +359,7 @@
                 this.getList()
             },
             mounted () {
+                this.darkMode = window.localStorage.getItem('ziroom-local-dark-mode')
                 this.routeMap = new BMap.Map("l-map");
                 this.routeMap.enableScrollWheelZoom(true);
             }
