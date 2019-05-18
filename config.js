@@ -16,5 +16,7 @@ module.exports = {
   // 搜索的平均频率 (ms)
   avgDuration: 5000,
   // 搜索的最大页数
-  maxPage: 100
+  maxPage: 100,
+  // 监听端口
+  port: 8000
 }

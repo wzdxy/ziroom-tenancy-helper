@@ -71,11 +71,11 @@ if (!fs.existsSync('eng.traineddata')) {
 }
 
 // 启动服务
-app.listen(8000, (e) => {
+app.listen(config.port, (e) => {
   if (e) {
     console.log(e)
   } else {
-    // open('http://localhost:8000')
+    open('http://localhost:' + config.port)
   }
 })
 
