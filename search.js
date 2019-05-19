@@ -14,7 +14,7 @@ module.exports = {
   async getList (options, page) {
     const params = Object.assign({
       page: page,
-      city_code: 110000
+      city_code: config.city_code 
     }, options)
     return new Promise((resolve, reject) => {
       superAgent.get('http://m.ziroom.com/v7/room/list.json')
@@ -32,7 +32,7 @@ module.exports = {
    */
   async getRoomDetail (id) {
     const params = Object.assign({
-      city_code: 110000,
+      city_code: config.city_code,
       id: id
     })
     return new Promise((resolve, reject) => {
