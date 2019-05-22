@@ -18,7 +18,13 @@ module.exports = {
           message: '请求未发出 , 因为未配置 config.ak'
         }))
       }
-      superAgent.get('http://api.map.baidu.com/direction/v2/' + type)
+      if (type=='walking'){
+        baseUrl = 'http://api.map.baidu.com/directionlite/v1/'
+      }
+      else{
+        baseUrl = 'http://api.map.baidu.com/direction/v2/'
+      }
+      superAgent.get(baseUrl + type)
         .query(Object.assign({
           origin: origin,
           destination: dest,
@@ -58,8 +64,6 @@ module.exports = {
 
   // 获取推荐的公交换乘路线
   async getRecommendTransitPathGroup (origin, dest) {
-    let group = [0, 1, 4, 5]  // 路线偏好 0 推荐 1 少换乘 2 少步行 3 不坐地铁 4 时间短 5 地铁优先
-    let result = []
     return new Promise(async (resolve, reject) => {
       try {
         let path = await this.getPath(origin, dest, 'transit')
@@ -90,6 +94,22 @@ module.exports = {
         reject(error)
       }
     })
-  }
+  },
 
+  // 获取步行线路
+  async getWalkingPath (origin, dest) {
+    return new Promise(async (resolve, reject) => {
+      try {
+        let path = await this.getPath(origin, dest, 'walking')
+        if (path.status === 0 && path.result.routes.length > 0) { // 如果有路线 , 取第一个
+          resolve(path.result.routes[0])
+        } else {
+          resolve(false)
+        }
+      } catch (error) {
+        console.error('获取步行路线错误', error)
+        reject(error)
+      }
+    })
+  }
 }

@@ -40,6 +40,9 @@
         .filter-item > .el-switch {
             height: 40px;
         }
+        .filter-item .el-radio-button__inner {
+            font-size: 16px;
+        }
         .el-checkbox+.el-checkbox {
             margin-left: 10px;
         }
@@ -145,8 +148,12 @@
             <div class="filter-item">
                 <div>通勤时长 : </div>
                 <div>{{filter.duration[0]}}</div><el-slider range v-model="filter.duration" :step="5" :max="120"  :min="0"></el-slider><div>{{filter.duration[1]}}</div>
-                <el-switch v-model="filter.pathType" active-color="#ffde00" inactive-color="#dd6666" active-value="0" inactive-value="1"></el-switch>
-                <div>{{['骑行','公交'][filter.pathType]}}</div>
+                <el-radio-group v-model="filter.pathType" size="mini" >
+                    <el-radio-button :label="0">骑行</el-radio-button>
+                    <el-radio-button :label="1">公交</el-radio-button>
+                    <el-radio-button :label="2">步行</el-radio-button>
+                </el-radio-group>
+                <!--<div>{{['骑行','公交','步行'][filter.pathType]}}</div>-->
             </div>
             <div class="filter-item">
                 <div>当前筛选: <b>{{countFilter}}</b>  爬取总数: <b>{{countAll}}</b></div>
@@ -192,6 +199,14 @@
                     <span v-if="scope.row.pathRide">
                         {{(scope.row.pathRide.duration/60).toFixed(1)}}分 /
                         {{(scope.row.pathRide.distance/1000).toFixed(1)}}km
+                    </span>
+                </template>
+            </el-table-column>
+            <el-table-column label="步行时长" width="160" sortable :sort-method="walkingDurationSort">
+                <template slot-scope="scope">
+                    <span v-if="scope.row.pathWalking">
+                        {{(scope.row.pathWalking.duration/60).toFixed(1)}}分 /
+                        {{(scope.row.pathWalking.distance/1000).toFixed(1)}}km
                     </span>
                 </template>
             </el-table-column>
@@ -257,7 +272,7 @@
                     distance: [0,9],
                     price: [5000,9000],
                     duration: [0, 45],
-                    pathType: 1,    // 筛选类型, 0 自行车 1 公交
+                    pathType: 1,    // 筛选类型, 0 自行车 1 公交 2 步行
                     status: ['dzz','ycz','zxpzz'],
                 },
                 darkMode: 0,
@@ -309,6 +324,11 @@
                     if(!a.pathRide)return -1
                     if(!b.pathRide)return 1
                     return a.pathRide.duration - b.pathRide.duration
+                },
+                walkingDurationSort (a, b){
+                    if(!a.pathWalking) return -1
+                    if(!b.pathWalking) return 1
+                    return a.pathWalking.duration - b.pathWalking.duration
                 },
                 transitDurationSort (a, b){
                     if(!a.pathTransitGroup)return -1

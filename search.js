@@ -131,9 +131,11 @@ module.exports = {
               // 如果是新数据 , 存入数据库
               res.data.rooms[idx].firstUpdateTime = res.data.rooms[idx].lastUpdateTime = new Date().getTime()
               // 百度地图获取通勤路线
+              res.data.rooms[idx].hasPath = config.ak.length > 0
               if (config.ak) {
                 res.data.rooms[idx].pathRide = await map.getRidingPath(`${item.lat},${item.lng}`, config.destinationString)
                 res.data.rooms[idx].pathTransitGroup = await map.getRecommendTransitPathGroup(`${item.lat},${item.lng}`, config.destinationString)
+                res.data.rooms[idx].pathWalking = await map.getWalkingPath(`${item.lat},${item.lng}`, config.destinationString)
               }
               // 图片识别
               res.data.rooms[idx].priceParsed = await price.parsePrice(res.data.rooms[idx].price[0], res.data.rooms[idx].price[1])

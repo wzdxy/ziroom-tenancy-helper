@@ -21,6 +21,9 @@ app.use('/api/list', async (req, res) => {
     if (filter.pathType === '1') {
       duration = _.minBy(item.pathTransitGroup, 'duration').duration
     }
+    else if(filter.pathType === '2') {
+      duration = item.pathWalking.duration
+    }
     return Number(price) > Number(filter.price[0])
         && Number(price) < Number(filter.price[1])
         && Number(duration) > Number(filter.duration[0]*60)
