@@ -194,6 +194,11 @@
             </el-table-column>
             <el-table-column prop="priceParsed.price" label="价格" width="90" sortable></el-table-column>
             <el-table-column prop="area" label="面积" width="80" sortable></el-table-column>
+            <el-table-column label="人民币每平" width="120" sortable :sort-method="valueForMoneySort">
+                <template slot-scope="scope">
+                    {{(scope.row.priceParsed.price/scope.row.area).toFixed(2)}}
+                </template>
+            </el-table-column>
             <el-table-column label="骑行时长" width="160" sortable :sort-method="rideDurationSort">
                 <template slot-scope="scope">
                     <span v-if="scope.row.pathRide">
@@ -319,6 +324,9 @@
                         this.isBusy = false
                         console.log('error', err)
                     })
+                },
+                valueForMoneySort (a, b){
+                    return a.priceParsed.price/a.area - b.priceParsed.price/b.area
                 },
                 rideDurationSort (a, b){
                     if(!a.pathRide)return -1
