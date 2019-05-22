@@ -17,9 +17,20 @@ app.use('/api/list', async (req, res) => {
   // 过滤
   let result = list.filter(function (item) {
     const price = item.priceParsed.price
-    let duration = item.pathRide.duration
+    if (
+      (!item.hasPath) ||
+      (filter.pathType === '0' && item.pathRide !== undefined)||
+      (filter.pathType === '1' && item.pathTransitGroup !== undefined)||
+      (filter.pathType === '2' && item.pathWalking !== undefined)){
+      return Number(price) > Number(filter.price[0])
+          && Number(price) < Number(filter.price[1])
+    }
+    let duration = -1
+    if (filter.pathType === '0'){
+        duration = item.pathRide.duration
+    }
     if (filter.pathType === '1') {
-      duration = _.minBy(item.pathTransitGroup, 'duration').duration
+        duration = _.minBy(item.pathTransitGroup, 'duration').duration
     }
     else if(filter.pathType === '2') {
       duration = item.pathWalking.duration
