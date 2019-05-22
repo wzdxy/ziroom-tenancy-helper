@@ -93,6 +93,10 @@ module.exports = {
               delete exist.lastUpdateTime
               delete exist.path
               delete exist._id
+              delete exist.pathRide
+              delete exist.pathTransitGroup
+              delete exist.pathWalking
+              delete exist.hasPath
               // 暂时去掉价格相关的数据, 比较其他数据
               const existPriceArray = exist.price
               const existPriceParsed = exist.priceParsed
